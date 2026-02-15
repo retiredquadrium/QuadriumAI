@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>QuadriumAI - Kendi Yapay Zekan</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+  </head>
+  <body>
+    <div class="bg-blur bg-blur-1"></div>
+    <div class="bg-blur bg-blur-2"></div>
+
+    <main class="app-shell">
+      <section class="hero">
+        <p class="tag">🚀 AI Starter Kit</p>
+        <h1>Kendi Yapay Zekânı Kur</h1>
+        <p>
+          Bu arayüz başlangıç seti ile modelini API üzerinden bağla, promptlarını özelleştir
+          ve modern bir sohbet deneyimi sun.
+        </p>
+      </section>
+
+      <section class="chat-card">
+        <div id="chatWindow" class="chat-window">
+          <article class="bubble bot">
+            Merhaba! Ben demo asistanın. Bana bir şey yaz, birlikte test edelim.
+          </article>
+        </div>
+
+        <form id="chatForm" class="chat-form">
+          <input
+            id="messageInput"
+            type="text"
+            placeholder="Mesajını yaz..."
+            autocomplete="off"
+            required
+          />
+          <button id="sendButton" type="submit">Gönder</button>
+        </form>
+      </section>
+    </main>
+
+    <script>
+      const chatWindow = document.getElementById("chatWindow");
+      const chatForm = document.getElementById("chatForm");
+      const messageInput = document.getElementById("messageInput");
+      const sendButton = document.getElementById("sendButton");
+
+      const addBubble = (text, who = "bot") => {
+        const bubble = document.createElement("article");
+        bubble.className = `bubble ${who}`;
+        bubble.textContent = text;
+        chatWindow.appendChild(bubble);
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+      };
+
+      chatForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const message = messageInput.value.trim();
+        if (!message) return;
+
+        addBubble(message, "user");
+        messageInput.value = "";
+        sendButton.disabled = true;
+
+        try {
+          const response = await fetch("/api/chat", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ message }),
+          });
+
+          const data = await response.json();
+          if (!response.ok) {
+            addBubble(data.error || "Bir hata oluştu.", "bot");
+          } else {
+            addBubble(data.reply, "bot");
+          }
+        } catch (error) {
+          addBubble("Sunucuya ulaşılamadı. Tekrar deneyin.", "bot");
+        } finally {
+          sendButton.disabled = false;
+          messageInput.focus();
+        }
+      });
+    </script>
+  </body>
+</html>
